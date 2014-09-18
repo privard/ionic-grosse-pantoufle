@@ -1,4 +1,4 @@
-angular.module('starter.controllers', [])
+angular.module('starter.controllers', ['firebase'])
 
 .controller('AppCtrl', function($scope, $ionicModal, $timeout) {
   // Form data for the login modal
@@ -33,7 +33,7 @@ angular.module('starter.controllers', [])
   };
 })
 
-.controller('PlaylistsCtrl', function($scope) {
+.controller('PlaylistsCtrl', function($scope, $firebase) {
   $scope.playlists = [
     { title: 'Reggae', id: 1 },
     { title: 'Chill', id: 2 },
@@ -42,6 +42,51 @@ angular.module('starter.controllers', [])
     { title: 'Rap', id: 5 },
     { title: 'Cowbell', id: 6 }
   ];
+})
+
+.controller('PantouflesCtrl', function($scope, $firebase) {
+  var sync = $firebase(new Firebase('https://radiant-torch-6239.firebaseio.com/Slipper'));
+  var pantoufles = sync.$asArray();
+  pantoufles.$loaded().then(function(){
+    $scope.pantoufles = pantoufles;
+    $scope.getRandomPantoufle();
+  });
+
+  $scope.getRandomPantoufle = function(){
+
+    var pantoufle = null;
+    var id = 0;
+
+    while(!pantoufle){
+      id = Math.floor(Math.random() * $scope.pantoufles.length);
+      pantoufle = $scope.pantoufles.$getRecord(id.toString());
+      // console.log(pantoufle);
+      console.log('Retrieved record #' + id);  
+    }
+
+    $scope.pantoufle = pantoufle;
+  };
+
+  $scope.rate = function(rating){
+    // Update the vote
+    $scope.pantoufle.rating.votes++;
+    $scope.pantoufle.rating.total += rating;
+
+    // Save rating to Firebase
+    $scope.pantoufles.$save($scope.pantoufle);
+
+    // update cookie
+    // $scope.alreadyRated[$scope.pantoufle.$id] = {
+    //   'rating': rating,
+    //   'last-rated': new Date() 
+    // };
+    // $cookieStore.put('pantoufle.rated', $scope.alreadyRated);
+    // console.log($scope.alreadyRated);
+    
+    // Get a new pantoufle at random      
+    $scope.getRandomPantoufle();
+  };
+
 })
 
 .controller('PlaylistCtrl', function($scope, $stateParams) {
