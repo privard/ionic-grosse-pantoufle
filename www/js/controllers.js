@@ -44,7 +44,7 @@ angular.module('starter.controllers', ['firebase'])
   ];
 })
 
-.controller('PantouflesCtrl', function($scope, $firebase) {
+.controller('PantouflesCtrl', function($scope, $firebase, $cordovaCamera) {
   var sync = $firebase(new Firebase('https://radiant-torch-6239.firebaseio.com/Slipper'));
   var pantoufles = sync.$asArray();
   pantoufles.$loaded().then(function(){
@@ -86,6 +86,29 @@ angular.module('starter.controllers', ['firebase'])
     // Get a new pantoufle at random      
     $scope.getRandomPantoufle();
   };
+
+  $scope.takePicture = function() {
+
+    var options = { 
+        quality : 75, 
+        destinationType : Camera.DestinationType.DATA_URL, 
+        sourceType : Camera.PictureSourceType.CAMERA, 
+        allowEdit : true,
+        encodingType: Camera.EncodingType.JPEG,
+        targetWidth: 500,
+        targetHeight: 500,
+        popoverOptions: CameraPopoverOptions,
+        saveToPhotoAlbum: false
+    };
+
+    $cordovaCamera.getPicture(options).then(function(imageData) {
+      // Upload to S3
+      console.log(imageData);
+      $scope.pantoufle.thumb = imageData;
+    }, function(err) {
+      console.log("There was an error : " + err);
+    });
+  }
 
 })
 
